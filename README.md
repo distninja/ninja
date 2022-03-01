@@ -1,7 +1,7 @@
 # ninja
 
 [![Build Status](https://github.com/distninja/ninja/workflows/CI/badge.svg?branch=main&event=push)](https://github.com/distninja/ninja/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/distninja/client/branch/main/graph/badge.svg?token=7Ev6C30rKl)](https://codecov.io/gh/distninja/client)
+[![codecov](https://codecov.io/gh/distninja/ninja/branch/main/graph/badge.svg?token=p6goS9Jj4g)](https://codecov.io/gh/distninja/ninja)
 [![License](https://img.shields.io/github/license/distninja/ninja.svg)](https://github.com/distninja/ninja/blob/main/LICENSE)
 [![Tag](https://img.shields.io/github/tag/distninja/ninja.svg)](https://github.com/distninja/ninja/tags)
 [![Gitter chat](https://badges.gitter.im/craftslab/distninja.png)](https://gitter.im/craftslab/distninja)
