@@ -23,11 +23,9 @@
 ## Run
 
 ```bash
-git clone https://github.com/distninja/ninja.git
-
-cd ninja
+make install
 make build
-./target/release/ninja --config-file="$PWD/src/config/config.yml"
+./target/x86_64-unknown-linux-musl/release/ninja --config-file="src/config/config.yml"
 ```
 
 
@@ -35,11 +33,8 @@ make build
 ## Docker
 
 ```bash
-git clone https://github.com/distninja/ninja.git
-
-cd ninja
 make docker
-docker run -v "$PWD"/src/config:/tmp ghcr.io/distninja/ninja:latest --config-file="/tmp/config.yml"
+docker run -v src/config:/tmp ghcr.io/distninja/ninja:latest --config-file="/tmp/config.yml"
 ```
 
 
@@ -48,11 +43,12 @@ docker run -v "$PWD"/src/config:/tmp ghcr.io/distninja/ninja:latest --config-fil
 
 ```
 USAGE:
-    ninja --config-file <NAME>
+    ninja [OPTIONS] --config-file <NAME>
 
 OPTIONS:
     -c, --config-file <NAME>    Config file (.yml)
     -h, --help                  Print help information
+    -s, --show-dashboard        Show dashboard
     -V, --version               Print version information
 ```
 
@@ -75,6 +71,12 @@ spec:
 
 
 
+## Dashboard
+
+> `ninja --config-file=/path/to/config.yml --show-dashboard`
+
+
+
 ## License
 
 Project License can be found [here](LICENSE).
@@ -84,3 +86,4 @@ Project License can be found [here](LICENSE).
 ## Reference
 
 - [ninja](https://github.com/ninja-build/ninja)
+- [tui-rs](https://github.com/fdehau/tui-rs)
