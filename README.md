@@ -48,7 +48,7 @@ USAGE:
 OPTIONS:
     -c, --config-file <NAME>    Config file (.yml)
     -h, --help                  Print help information
-    -s, --show-dashboard        Show dashboard
+    -u, --show-ui               Show UI
     -V, --version               Print version information
 ```
 
@@ -71,9 +71,9 @@ spec:
 
 
 
-## Dashboard
+## UI
 
-> `ninja --config-file=/path/to/config.yml --show-dashboard`
+> `ninja --config-file=/path/to/config.yml --show-ui`
 
 
 

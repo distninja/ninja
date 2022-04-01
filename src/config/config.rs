@@ -8,6 +8,7 @@ use std::path::Path;
 pub struct Config {
     pub config_data: ConfigData,
     pub config_file: String,
+    pub show_ui: bool,
     pub version_info: String,
 }
 
@@ -33,8 +34,6 @@ pub struct Spec {
 impl Config {
     pub fn build(&mut self) -> Result<(), Box<dyn Error>> {
         self.config()?;
-        self.version()?;
-
         Ok(())
     }
 
@@ -54,11 +53,6 @@ impl Config {
         let f = File::open(&self.config_file)?;
         self.config_data = serde_yaml::from_reader(f)?;
 
-        Ok(())
-    }
-
-    pub fn version(&mut self) -> Result<(), Box<dyn Error>> {
-        // PASS
         Ok(())
     }
 }

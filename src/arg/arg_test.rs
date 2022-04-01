@@ -5,6 +5,6 @@ fn test_argument() {
     };
 
     assert_eq!(args.config_file.is_empty(), true);
-    assert_eq!(args.show_dashboard, false);
+    assert_eq!(args.show_ui, false);
     assert_eq!(args.version_info.is_empty(), true);
 }

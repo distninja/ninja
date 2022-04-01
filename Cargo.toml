@@ -4,11 +4,6 @@ version = "0.0.1"
 edition = "2021"
 rust-version = "1.59"
 authors = ["Jia Jia <angersax@sina.com>"]
-include = [
-    "src/**/*",
-    "Cargo.toml",
-    "README.md"
-]
 description = "A distributed build system"
 repository = "https://github.com/distninja/ninja"
 documentation = "https://github.com/distninja/ninja"
@@ -17,6 +12,11 @@ keywords = ["distributed", "build"]
 categories = ["build"]
 license = "Apache-2.0"
 readme = "README.md"
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "README.md"
+]
 
 [[bin]]
 name = "ninja"
@@ -30,6 +30,7 @@ clap = "3.0"
 serde = "1.0"
 serde_derive = "1.0"
 serde_yaml = "0.8"
+tui = { version = "0.17", default-features = false, features = ["crossterm"]}
 
 [badges]
 maintenance = { status = "actively-developed" }

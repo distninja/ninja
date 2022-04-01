@@ -4,7 +4,7 @@ use std::error::Error;
 #[derive(Clone, Default)]
 pub struct Argument {
     pub config_file: String,
-    pub show_dashboard: bool,
+    pub show_ui: bool,
     pub version_info: String,
 }
 
@@ -25,10 +25,10 @@ impl Argument {
                     .required(true),
             )
             .arg(
-                Arg::new("show_dashboard")
-                    .short('s')
-                    .long("show-dashboard")
-                    .help("Show dashboard")
+                Arg::new("show_ui")
+                    .short('u')
+                    .long("show-ui")
+                    .help("Show UI")
                     .takes_value(false)
                     .required(false),
             )
@@ -39,10 +39,10 @@ impl Argument {
             None => self.config_file = "".to_string(),
         }
 
-        if matches.is_present("show_dashboard") {
-            self.show_dashboard = true;
+        if matches.is_present("show_ui") {
+            self.show_ui = true;
         } else {
-            self.show_dashboard = false;
+            self.show_ui = false;
         }
 
         Ok(())

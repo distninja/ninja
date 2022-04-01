@@ -33,13 +33,3 @@ fn test_config() {
 
     assert!(c.config().is_ok());
 }
-
-#[test]
-fn test_version() {
-    let mut c = super::config::Config {
-        version_info: "".to_string(),
-        ..Default::default()
-    };
-
-    assert!(c.version().is_ok());
-}
