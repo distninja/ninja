@@ -4,18 +4,16 @@ mod ui;
 
 use arg::arg::Argument;
 use config::config::Config;
-use std::process;
+use std::error::Error;
+
 use ui::ui::Ui;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut a = Argument {
         ..Default::default()
     };
 
-    if let Err(err) = a.parse() {
-        println!("failed to parse argument: {}", err);
-        process::exit(-1);
-    }
+    a.parse()?;
 
     let mut c = Config {
         config_file: a.config_file,
@@ -24,19 +22,15 @@ fn main() {
         ..Default::default()
     };
 
-    if let Err(err) = c.build() {
-        println!("failed to build config: {}", err);
-        process::exit(-2);
-    }
+    c.build()?;
 
     if c.show_ui {
         let mut u = Ui {
             ..Default::default()
         };
 
-        if let Err(err) = u.run() {
-            println!("failed to run ui: {}", err);
-            process::exit(-3);
-        }
+        u.run()?;
     }
+
+    Ok(())
 }
