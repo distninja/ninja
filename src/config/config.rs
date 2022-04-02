@@ -32,6 +32,15 @@ pub struct Spec {
 }
 
 impl Config {
+    pub fn new(cfg: String, ui: bool, ver: String) -> Self {
+        Config {
+            config_file: cfg,
+            show_ui: ui,
+            version_info: ver,
+            ..Default::default()
+        }
+    }
+
     pub fn build(&mut self) -> Result<(), Box<dyn Error>> {
         self.config()?;
         Ok(())
