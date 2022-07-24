@@ -8,7 +8,6 @@ use std::path::Path;
 pub struct Config {
     pub config_data: ConfigData,
     pub config_file: String,
-    pub show_ui: bool,
     pub version_info: String,
 }
 
@@ -32,10 +31,9 @@ pub struct Spec {
 }
 
 impl Config {
-    pub fn new(cfg: String, ui: bool, ver: String) -> Self {
+    pub fn new(cfg: String, ver: String) -> Self {
         Config {
             config_file: cfg,
-            show_ui: ui,
             version_info: ver,
             ..Default::default()
         }

@@ -16,7 +16,7 @@
 
 ## Prerequisites
 
-- Rust >= 1.59.0
+- Rust >= 1.60.0
 
 
 
@@ -25,7 +25,7 @@
 ```bash
 make install
 make build
-./target/x86_64-unknown-linux-musl/release/ninja --config-file="src/config/config.yml"
+./target/release/ninja --config-file="src/config/config.yml"
 ```
 
 
@@ -43,12 +43,11 @@ docker run -v src/config:/tmp ghcr.io/distninja/ninja:latest --config-file="/tmp
 
 ```
 USAGE:
-    ninja [OPTIONS] --config-file <NAME>
+    ninja --config-file <NAME>
 
 OPTIONS:
     -c, --config-file <NAME>    Config file (.yml)
     -h, --help                  Print help information
-    -u, --show-ui               Show UI
     -V, --version               Print version information
 ```
 
@@ -71,12 +70,6 @@ spec:
 
 
 
-## UI
-
-> `ninja --config-file=/path/to/config.yml --show-ui`
-
-
-
 ## License
 
 Project License can be found [here](LICENSE).
@@ -86,4 +79,3 @@ Project License can be found [here](LICENSE).
 ## Reference
 
 - [ninja](https://github.com/ninja-build/ninja)
-- [tui-rs](https://github.com/fdehau/tui-rs)

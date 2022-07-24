@@ -1,20 +1,13 @@
 #!/bin/bash
 
 build=$(date +%FT%T%z)
+target="target/release/ninja"
 
-linux="target/x86_64-unknown-linux-musl/release/ninja"
-windows="target/x86_64-pc-windows-gnu/release/ninja.exe"
-
-if [ "$1" = "all" ]; then
-  build=$build cargo build --release --all-features --all-targets --target=x86_64-pc-windows-gnu
-  build=$build cargo build --release --all-features --all-targets --target=x86_64-unknown-linux-musl
-elif [ "$1" = "offline" ]; then
-  build=$build cargo build --release --all-features --all-targets --target=x86_64-unknown-linux-musl --offline
-elif [ "$1" = "check" ]; then
-  build=$build cargo check --release --all-features --all-targets
+if [ "$1" = "offline" ]; then
+  build=$build cargo build --release --all-features --all-targets --offline
 else
-  build=$build cargo build --release --all-features --all-targets --target=x86_64-unknown-linux-musl
+  build=$build cargo build --release --all-features --all-targets
 fi
 
-if [ -f $linux ]; then upx $linux; fi
-if [ -f $windows ]; then upx $windows; fi
+if [ -f $target ]; then upx $target; fi
+if [ -f "$target".exe ]; then upx "$target".exe; fi
