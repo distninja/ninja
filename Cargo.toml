@@ -20,16 +20,13 @@ include = [
 
 [[bin]]
 name = "ninja"
-path = "src/main.rs"
+path = "src/ninja.rs"
 
 [profile.release]
 strip = "debuginfo"
 
 [dependencies]
 clap = "3.0"
-serde = "1.0"
-serde_derive = "1.0"
-serde_yaml = "0.8"
 
 [badges]
 maintenance = { status = "actively-developed" }

@@ -25,7 +25,7 @@
 ```bash
 make install
 make build
-./target/release/ninja --config-file="src/config/config.yml"
+./target/release/ninja
 ```
 
 
@@ -34,7 +34,7 @@ make build
 
 ```bash
 make docker
-docker run -v src/config:/tmp ghcr.io/distninja/ninja:latest --config-file="/tmp/config.yml"
+docker run ghcr.io/distninja/ninja:latest
 ```
 
 
@@ -42,30 +42,6 @@ docker run -v src/config:/tmp ghcr.io/distninja/ninja:latest --config-file="/tmp
 ## Usage
 
 ```
-USAGE:
-    ninja --config-file <NAME>
-
-OPTIONS:
-    -c, --config-file <NAME>    Config file (.yml)
-    -h, --help                  Print help information
-    -V, --version               Print version information
-```
-
-
-
-## Settings
-
-*ninja* parameters can be set in the directory [config](https://github.com/distninja/ninja/blob/main/src/config).
-
-An example of configuration in [config.yml](https://github.com/distninja/ninja/blob/main/src/config/config.yml):
-
-```yaml
-apiVersion: v1
-kind: ninja
-metadata:
-  name: ninja
-spec:
-  foo: foo
 ```
 
 

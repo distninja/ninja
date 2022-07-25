@@ -27,7 +27,7 @@ impl Argument {
                     .value_name("NAME")
                     .help("Config file (.yml)")
                     .takes_value(true)
-                    .required(true),
+                    .required(false),
             )
             .get_matches();
 
