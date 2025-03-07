@@ -233,6 +233,12 @@ parser.add_option('--with-python', metavar='EXE',
 parser.add_option('--force-pselect', action='store_true',
                   help='ppoll() is used by default where available, '
                        'but some platforms may need to use pselect instead',)
+parser.add_option('--android-soong', action='store_true',
+                  help='enable android soong',
+                  default=True)
+parser.add_option('--function-trace', action='store_true',
+                  help='enable function trace',
+                  default=False)
 (options, args) = parser.parse_args()
 if args:
     print('ERROR: extra unparsed command-line arguments:', args)
@@ -418,6 +424,12 @@ if platform.supports_ninja_browse():
 # Search for generated headers relative to build dir.
 cflags.append('-I.')
 
+if options.android_soong:
+    cflags.append('-DANDROID_SOONG')
+
+if options.function_trace:
+    cflags.append('-DFUNCTION_TRACE')
+
 def shell_escape(str: str) -> str:
     """Escape str such that it's interpreted as a single argument by
     the shell."""
@@ -547,6 +559,7 @@ for name in ['build',
              'json',
              'line_printer',
              'manifest_parser',
+             'manifest_parser_perf',
              'metrics',
              'missing_deps',
              'parser',
@@ -554,6 +567,7 @@ for name in ['build',
              'state',
              'status_printer',
              'string_piece_util',
+             'tracer',
              'util',
              'version']:
     objs += cxx(name, variables=cxxvariables)

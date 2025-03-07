@@ -61,6 +61,17 @@
 
 #include "edit_distance.h"
 
+#ifdef ANDROID_SOONG
+#include <system_error>
+#ifndef _WIN32
+#include <sys/mman.h>
+#endif /* _WIN32 */
+#endif /* ANDROID_SOONG */
+
+#ifdef FUNCTION_TRACE
+#include "tracer.h"
+#endif /* FUNCTION_TRACE */
+
 using namespace std;
 
 void Fatal(const char* msg, ...) {
@@ -411,7 +422,103 @@ void GetWin32EscapedString(const string& input, string* result) {
   result->push_back(kQuote);
 }
 
+#ifdef ANDROID_SOONG
+class MemoryMappedFile {
+  void* data_ = nullptr;
+  size_t size_ = 0;
+#ifdef _WIN32
+  HANDLE file_ = INVALID_HANDLE_VALUE;
+  HANDLE mapping_ = NULL;
+#else
+  int fd_ = -1;
+#endif /* _WIN32 */
+
+public:
+  ~MemoryMappedFile() {
+#ifdef _WIN32
+    if (data_) UnmapViewOfFile(data_);
+    if (mapping_) CloseHandle(mapping_);
+    if (file_ != INVALID_HANDLE_VALUE) CloseHandle(file_);
+#else
+    if (data_) munmap(data_, size_);
+    if (fd_ != -1) close(fd_);
+#endif /* _WIN32 */
+  }
+
+  std::error_code map(const std::string& path) {
+#ifdef _WIN32
+    file_ = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ,
+        nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+    if (file_ == INVALID_HANDLE_VALUE) {
+      return std::error_code(GetLastError(), std::system_category());
+    }
+
+    LARGE_INTEGER fileSize;
+    if (!GetFileSizeEx(file_, &fileSize)) {
+      return std::error_code(GetLastError(), std::system_category());
+    }
+    size_ = fileSize.QuadPart;
+
+    mapping_ = CreateFileMappingA(file_, nullptr, PAGE_READONLY, 0, 0, nullptr);
+    if (!mapping_) {
+      return std::error_code(GetLastError(), std::system_category());
+    }
+
+    data_ = MapViewOfFile(mapping_, FILE_MAP_READ, 0, 0, 0);
+    if (!data_) {
+      return std::error_code(GetLastError(), std::system_category());
+    }
+#else
+    fd_ = open(path.c_str(), O_RDONLY);
+    if (fd_ == -1) {
+      return std::error_code(errno, std::system_category());
+    }
+
+    struct stat st;
+    if (fstat(fd_, &st) == -1) {
+      return std::error_code(errno, std::system_category());
+    }
+    size_ = st.st_size;
+
+    data_ = mmap(nullptr, size_, PROT_READ, MAP_PRIVATE, fd_, 0);
+    if (data_ == MAP_FAILED) {
+      data_ = nullptr;
+      return std::error_code(errno, std::system_category());
+    }
+#endif /* _WIN32 */
+      return {};
+    }
+
+    const char* data() const {
+      return static_cast<const char*>(data_);
+    }
+
+    size_t size() const {
+      return size_;
+  }
+};
+
 int ReadFile(const string& path, string* contents, string* err) {
+#ifdef FUNCTION_TRACE
+  FUNCTION_TRACER;
+#endif /* FUNCTION_TRACE */
+
+  MemoryMappedFile mmf;
+  if (auto ec = mmf.map(path)) {
+    *err = ec.message();
+    return -ec.value();
+  }
+
+  contents->assign(mmf.data(), mmf.size());
+
+  return 0;
+}
+#else
+int ReadFile(const string& path, string* contents, string* err) {
+#ifdef FUNCTION_TRACE
+  FUNCTION_TRACER;
+#endif /* FUNCTION_TRACE */
+
 #ifdef _WIN32
   // This makes a ninja run on a set of 1500 manifest files about 4% faster
   // than using the generic fopen code below.
@@ -475,6 +582,7 @@ int ReadFile(const string& path, string* contents, string* err) {
   return 0;
 #endif
 }
+#endif /* ANDROID_SOONG */
 
 void SetCloseOnExec(int fd) {
 #ifndef _WIN32

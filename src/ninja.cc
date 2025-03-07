@@ -52,6 +52,9 @@
 #include "missing_deps.h"
 #include "state.h"
 #include "status.h"
+#ifdef FUNCTION_TRACE
+#include "tracer.h"
+#endif /* FUNCTION_TRACE */
 #include "util.h"
 #include "version.h"
 
@@ -1021,6 +1024,10 @@ void PrintOneCompdbObject(std::string const& directory, const Edge* const edge,
 
 int NinjaMain::ToolCompilationDatabase(const Options* options, int argc,
                                        char* argv[]) {
+#ifdef FUNCTION_TRACE
+  FUNCTION_TRACER;
+#endif /* FUNCTION_TRACE */
+
   // The compdb tool uses getopt, and expects argv[0] to contain the name of
   // the tool, i.e. "compdb".
   argc++;
@@ -1053,30 +1060,43 @@ int NinjaMain::ToolCompilationDatabase(const Options* options, int argc,
   bool first = true;
 
   std::string directory = GetWorkingDirectory();
+#ifndef FUNCTION_TRACE
   putchar('[');
+#endif /* FUNCTION_TRACE */
   for (const Edge* edge : state_.edges_) {
     if (edge->inputs_.empty())
       continue;
     if (argc == 0) {
       if (!first) {
+#ifndef FUNCTION_TRACE
         putchar(',');
+#endif /* FUNCTION_TRACE */
       }
+#ifndef FUNCTION_TRACE
       PrintOneCompdbObject(directory, edge, eval_mode);
+#endif /* FUNCTION_TRACE */
       first = false;
     } else {
       for (int i = 0; i != argc; ++i) {
         if (edge->rule_->name() == argv[i]) {
           if (!first) {
+#ifndef FUNCTION_TRACE
             putchar(',');
+#endif /* FUNCTION_TRACE */
           }
+#ifndef FUNCTION_TRACE
           PrintOneCompdbObject(directory, edge, eval_mode);
+#endif /* FUNCTION_TRACE */
           first = false;
         }
       }
     }
   }
 
+#ifndef FUNCTION_TRACE
   puts("\n]");
+#endif /* FUNCTION_TRACE */
+
   return 0;
 }
 
