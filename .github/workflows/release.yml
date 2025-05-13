@@ -1,0 +1,44 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    name: Released on ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, ubuntu-24.04 ]
+    steps:
+      - name: 'Checkout source'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: 'Install dependencies'
+        shell: bash
+        run: ./install.sh
+      - name: 'Build release'
+        shell: bash
+        run: ./build.sh
+      - name: 'Create archive'
+        run: |
+          mkdir artifact
+          7z a artifact/ninja-${{matrix.os}}-amd64.zip ./release-build/ninja
+      - name: 'Upload artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ninja-binary-archives
+          path: artifact
+      - name: 'Upload asset'
+        if: github.event.action == 'published'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.DISTNINJA_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifact/ninja-${{matrix.os}}-amd64.zip
+          asset_name: ninja-${{matrix.os}}-amd64.zip
+          asset_content_type: application/zip
