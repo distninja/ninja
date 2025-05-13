@@ -5,12 +5,11 @@ on:
     types: published
 
 jobs:
-  release:
-    name: Released on ${{matrix.os}}
-    runs-on: ${{matrix.os}}
+  ubuntu:
+    name: 'Released on ubuntu'
+    runs-on: [ubuntu-latest]
     strategy:
-      matrix:
-        os: [ ubuntu-18.04, ubuntu-22.04, ubuntu-24.04 ]
+      fail-fast: false
     steps:
       - name: 'Checkout source'
         uses: actions/checkout@v4
@@ -25,7 +24,7 @@ jobs:
       - name: 'Create archive'
         run: |
           mkdir artifact
-          7z a artifact/ninja-${{matrix.os}}-amd64.zip ./release-build/ninja
+          7z a artifact/ninja-linux.zip ./release-build/ninja
       - name: 'Upload asset'
         if: github.event.action == 'published'
         uses: actions/upload-release-asset@v1
@@ -33,6 +32,38 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DISTNINJA_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./artifact/ninja-${{matrix.os}}-amd64.zip
-          asset_name: ninja-${{matrix.os}}-amd64.zip
+          asset_path: ./artifact/ninja-linux.zip
+          asset_name: ninja-linux.zip
+          asset_content_type: application/zip
+  windows:
+    name: 'Released on windows'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - arch: 'x64'
+          suffix: ''
+    steps:
+      - name: 'Checkout source'
+        uses: actions/checkout@v4
+      - name: 'Install dependencies'
+        run: choco install re2c
+      - name: 'Build release'
+        shell: bash
+        run: ./script/build.sh
+      - name: 'Create archive'
+        shell: bash
+        run: |
+          mkdir artifact
+          7z a artifact/ninja-win${{ matrix.suffix }}.zip ./release-build/Release/ninja.exe
+      - name: 'Upload asset'
+        if: github.event.action == 'published'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.DISTNINJA_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifact/ninja-win${{ matrix.suffix }}.zip
+          asset_name: ninja-win${{ matrix.suffix }}.zip
           asset_content_type: application/zip
