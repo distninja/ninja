@@ -8,6 +8,8 @@ jobs:
   ubuntu:
     name: 'Released on ubuntu'
     runs-on: [ubuntu-latest]
+    container:
+      image: rockylinux:8
     strategy:
       fail-fast: false
     steps:
@@ -16,8 +18,10 @@ jobs:
         with:
           fetch-depth: 1
       - name: 'Install dependencies'
-        shell: bash
-        run: ./script/install.sh
+        run: |
+          dnf install -y make gcc-c++ libasan clang-analyzer cmake dnf-plugins-core epel-release
+          dnf config-manager --set-enabled powertools
+          dnf install -y gtest-devel p7zip p7zip-plugins ninja-build
       - name: 'Build release'
         shell: bash
         run: ./script/build.sh
