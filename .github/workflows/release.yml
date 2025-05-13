@@ -1,8 +1,6 @@
 name: release
 
 on:
-  pull_request:
-  push:
   release:
     types: published
 
@@ -28,11 +26,6 @@ jobs:
         run: |
           mkdir artifact
           7z a artifact/ninja-${{matrix.os}}-amd64.zip ./release-build/ninja
-      - name: 'Upload artifact'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ninja-binary-archives
-          path: artifact
       - name: 'Upload asset'
         if: github.event.action == 'published'
         uses: actions/upload-release-asset@v1
