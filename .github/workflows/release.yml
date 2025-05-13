@@ -20,10 +20,10 @@ jobs:
           fetch-depth: 1
       - name: 'Install dependencies'
         shell: bash
-        run: ./install.sh
+        run: ./script/install.sh
       - name: 'Build release'
         shell: bash
-        run: ./build.sh
+        run: ./script/build.sh
       - name: 'Create archive'
         run: |
           mkdir artifact
