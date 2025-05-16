@@ -1,0 +1,73 @@
+name: release
+
+on:
+  release:
+    types: published
+
+jobs:
+  ubuntu:
+    name: 'Released on ubuntu'
+    runs-on: [ubuntu-latest]
+    container:
+      image: rockylinux:8
+    strategy:
+      fail-fast: false
+    steps:
+      - name: 'Checkout source'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: 'Install dependencies'
+        run: |
+          dnf install -y make gcc-c++ libasan clang-analyzer cmake dnf-plugins-core epel-release
+          dnf config-manager --set-enabled powertools
+          dnf install -y gtest-devel p7zip p7zip-plugins ninja-build
+      - name: 'Build release'
+        shell: bash
+        run: ./script/build.sh
+      - name: 'Create archive'
+        run: |
+          mkdir artifact
+          7z a artifact/ninja-linux.zip ./release-build/ninja
+      - name: 'Upload asset'
+        if: github.event.action == 'published'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.DISTNINJA_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifact/ninja-linux.zip
+          asset_name: ninja-linux.zip
+          asset_content_type: application/zip
+  windows:
+    name: 'Released on windows'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - arch: 'x64'
+          suffix: ''
+    steps:
+      - name: 'Checkout source'
+        uses: actions/checkout@v4
+      - name: 'Install dependencies'
+        run: choco install re2c
+      - name: 'Build release'
+        shell: bash
+        run: ./script/build.sh
+      - name: 'Create archive'
+        shell: bash
+        run: |
+          mkdir artifact
+          7z a artifact/ninja-win${{ matrix.suffix }}.zip ./release-build/ninja.exe
+      - name: 'Upload asset'
+        if: github.event.action == 'published'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.DISTNINJA_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifact/ninja-win${{ matrix.suffix }}.zip
+          asset_name: ninja-win${{ matrix.suffix }}.zip
+          asset_content_type: application/zip

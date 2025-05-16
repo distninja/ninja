@@ -85,7 +85,12 @@ bool Rule::IsReservedBinding(const string& var) {
       var == "restat" ||
       var == "rspfile" ||
       var == "rspfile_content" ||
+#ifdef ANDROID_SOONG
+      var == "msvc_deps_prefix" ||
+      var == "symlink_outputs";
+#else
       var == "msvc_deps_prefix";
+#endif /* ANDROID_SOONG */
 }
 
 const map<string, std::unique_ptr<const Rule>>& BindingEnv::GetRules() const {

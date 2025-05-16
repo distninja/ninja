@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ANDROID_SOONG
+#ifdef ANDROID_SOONG
 
 #include "manifest_parser.h"
 
@@ -104,7 +104,6 @@ bool ManifestParser::Parse(const string& filename, const string& input,
   return false;  // not reached
 }
 
-
 bool ManifestParser::ParsePool(string* err) {
   string name;
   if (!lexer_.ReadIdent(&name))
@@ -140,7 +139,6 @@ bool ManifestParser::ParsePool(string* err) {
   state_->AddPool(new Pool(name, depth));
   return true;
 }
-
 
 bool ManifestParser::ParseRule(string* err) {
   string name;
@@ -227,8 +225,9 @@ bool ManifestParser::ParseEdge(string* err) {
     EvalString out;
     if (!lexer_.ReadPath(&out, err))
       return false;
+    outs_.reserve(10); // Pre-allocate memory
     while (!out.empty()) {
-      outs_.push_back(std::move(out));
+      outs_.emplace_back(std::move(out));
 
       out.Clear();
       if (!lexer_.ReadPath(&out, err))
@@ -239,13 +238,14 @@ bool ManifestParser::ParseEdge(string* err) {
   // Add all implicit outs, counting how many as we go.
   int implicit_outs = 0;
   if (lexer_.PeekToken(Lexer::PIPE)) {
-    for (;;) {
+    outs_.reserve(outs_.size() + 10); // Pre-allocate additional memory
+    while (true) {
       EvalString out;
       if (!lexer_.ReadPath(&out, err))
         return false;
       if (out.empty())
         break;
-      outs_.push_back(std::move(out));
+      outs_.emplace_back(std::move(out));
       ++implicit_outs;
     }
   }
@@ -264,26 +264,27 @@ bool ManifestParser::ParseEdge(string* err) {
   if (!rule)
     return lexer_.Error("unknown build rule '" + rule_name + "'", err);
 
-  for (;;) {
-    // XXX should we require one path here?
+  ins_.reserve(10); // Pre-allocate memory
+  while (true) {
     EvalString in;
     if (!lexer_.ReadPath(&in, err))
       return false;
     if (in.empty())
       break;
-    ins_.push_back(std::move(in));
+    ins_.emplace_back(std::move(in));
   }
 
   // Add all implicit deps, counting how many as we go.
   int implicit = 0;
   if (lexer_.PeekToken(Lexer::PIPE)) {
-    for (;;) {
+    ins_.reserve(ins_.size() + 10); // Pre-allocate additional memory
+    while (true) {
       EvalString in;
       if (!lexer_.ReadPath(&in, err))
         return false;
       if (in.empty())
         break;
-      ins_.push_back(std::move(in));
+      ins_.emplace_back(std::move(in));
       ++implicit;
     }
   }
@@ -291,26 +292,28 @@ bool ManifestParser::ParseEdge(string* err) {
   // Add all order-only deps, counting how many as we go.
   int order_only = 0;
   if (lexer_.PeekToken(Lexer::PIPE2)) {
-    for (;;) {
+    ins_.reserve(ins_.size() + 10); // Pre-allocate additional memory
+    while (true) {
       EvalString in;
       if (!lexer_.ReadPath(&in, err))
         return false;
       if (in.empty())
         break;
-      ins_.push_back(std::move(in));
+      ins_.emplace_back(std::move(in));
       ++order_only;
     }
   }
 
   // Add all validations, counting how many as we go.
   if (lexer_.PeekToken(Lexer::PIPEAT)) {
-    for (;;) {
+    validations_.reserve(10); // Pre-allocate memory
+    while (true) {
       EvalString validation;
       if (!lexer_.ReadPath(&validation, err))
         return false;
       if (validation.empty())
         break;
-      validations_.push_back(std::move(validation));
+      validations_.emplace_back(std::move(validation));
     }
   }
 
@@ -333,13 +336,15 @@ bool ManifestParser::ParseEdge(string* err) {
   Edge* edge = state_->AddEdge(rule);
   edge->env_ = env;
 
-  string pool_name = edge->GetBinding("pool");
-  if (!pool_name.empty()) {
-    Pool* pool = state_->LookupPool(pool_name);
-    if (pool == NULL)
-      return lexer_.Error("unknown pool name '" + pool_name + "'", err);
-    edge->pool_ = pool;
-  }
+  // Ignore unknown pool name (e.g., highmem_pool)
+  //
+  // string pool_name = edge->GetBinding("pool");
+  // if (!pool_name.empty()) {
+  //   Pool* pool = state_->LookupPool(pool_name);
+  //   if (pool == NULL)
+  //     return lexer_.Error("unknown pool name '" + pool_name + "'", err);
+  //   edge->pool_ = pool;
+  // }
 
   edge->outputs_.reserve(outs_.size());
   for (size_t i = 0, e = outs_.size(); i != e; ++i) {
@@ -364,8 +369,8 @@ bool ManifestParser::ParseEdge(string* err) {
   edge->implicit_outs_ = implicit_outs;
 
   edge->inputs_.reserve(ins_.size());
-  for (vector<EvalString>::iterator i = ins_.begin(); i != ins_.end(); ++i) {
-    string path = i->Evaluate(env);
+  for (auto& in : ins_) {
+    string path = in.Evaluate(env);
     if (path.empty())
       return lexer_.Error("empty path", err);
     uint64_t slash_bits;
@@ -376,9 +381,8 @@ bool ManifestParser::ParseEdge(string* err) {
   edge->order_only_deps_ = order_only;
 
   edge->validations_.reserve(validations_.size());
-  for (std::vector<EvalString>::iterator v = validations_.begin();
-      v != validations_.end(); ++v) {
-    string path = v->Evaluate(env);
+  for (auto& validation : validations_) {
+    string path = validation.Evaluate(env);
     if (path.empty())
       return lexer_.Error("empty path", err);
     uint64_t slash_bits;
@@ -393,14 +397,13 @@ bool ManifestParser::ParseEdge(string* err) {
     // build graph but that has since been fixed.  Filter them out to
     // support users of those old CMake versions.
     Node* out = edge->outputs_[0];
-    vector<Node*>::iterator new_end =
-        remove(edge->inputs_.begin(), edge->inputs_.end(), out);
+    auto new_end = remove(edge->inputs_.begin(), edge->inputs_.end(), out);
     if (new_end != edge->inputs_.end()) {
       edge->inputs_.erase(new_end, edge->inputs_.end());
       if (!quiet_) {
         Warning("phony target '%s' names itself as an input; "
-                "ignoring [-w phonycycle=warn]",
-                out->path().c_str());
+            "ignoring [-w phonycycle=warn]",
+            out->path().c_str());
       }
     }
   }
@@ -414,8 +417,7 @@ bool ManifestParser::ParseEdge(string* err) {
     CanonicalizePath(&dyndep, &slash_bits);
     edge->dyndep_ = state_->GetNode(dyndep, slash_bits);
     edge->dyndep_->set_dyndep_pending(true);
-    vector<Node*>::iterator dgi =
-      std::find(edge->inputs_.begin(), edge->inputs_.end(), edge->dyndep_);
+    auto dgi = std::find(edge->inputs_.begin(), edge->inputs_.end(), edge->dyndep_);
     if (dgi == edge->inputs_.end()) {
       return lexer_.Error("dyndep '" + dyndep + "' is not an input", err);
     }

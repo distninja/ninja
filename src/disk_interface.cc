@@ -34,6 +34,10 @@
 #include "metrics.h"
 #include "util.h"
 
+#ifdef FUNCTION_TRACE
+#include "tracer.h"
+#endif /* FUNCTION_TRACE */
+
 using namespace std;
 
 namespace {
@@ -283,6 +287,10 @@ bool RealDiskInterface::MakeDir(const string& path) {
 FileReader::Status RealDiskInterface::ReadFile(const string& path,
                                                string* contents,
                                                string* err) {
+#ifdef FUNCTION_TRACE
+  FUNCTION_TRACER;
+#endif /* FUNCTION_TRACE */
+
   switch (::ReadFile(path, contents, err)) {
   case 0:       return Okay;
   case -ENOENT: return NotFound;

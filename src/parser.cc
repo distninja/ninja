@@ -17,9 +17,17 @@
 #include "disk_interface.h"
 #include "metrics.h"
 
+#ifdef FUNCTION_TRACE
+#include "tracer.h"
+#endif /* FUNCTION_TRACE */
+
 using namespace std;
 
 bool Parser::Load(const string& filename, string* err, Lexer* parent) {
+#ifdef FUNCTION_TRACE
+  FUNCTION_TRACER;
+#endif /* FUNCTION_TRACE */
+
   // If |parent| is not NULL, metrics collection has been started by a parent
   // Parser::Load() in our call stack. Do not start a new one here to avoid
   // over-counting parsing times.

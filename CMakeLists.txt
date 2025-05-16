@@ -143,6 +143,7 @@ add_library(libninja OBJECT
 	src/json.cc
 	src/line_printer.cc
 	src/manifest_parser.cc
+	src/manifest_parser_perf.cc
 	src/metrics.cc
 	src/missing_deps.cc
 	src/parser.cc
@@ -150,6 +151,7 @@ add_library(libninja OBJECT
 	src/state.cc
 	src/status_printer.cc
 	src/string_piece_util.cc
+	src/tracer.cc
 	src/util.cc
 	src/version.cc
 )
@@ -219,6 +221,20 @@ if(NINJA_BUILD_BINARY)
 		set_target_properties(libninja PROPERTIES CXX_CLANG_TIDY "clang-tidy;--use-color")
 		set_target_properties(ninja    PROPERTIES CXX_CLANG_TIDY "clang-tidy;--use-color")
 	endif()
+
+	set(ANDROID_SOONG TRUE CACHE BOOL "Android soong")
+	if(ANDROID_SOONG)
+		target_compile_definitions(libninja PUBLIC ANDROID_SOONG)
+		target_compile_definitions(ninja PUBLIC ANDROID_SOONG)
+	endif()
+
+	set(FUNCTION_TRACE FALSE CACHE BOOL "Function trace")
+	if(FUNCTION_TRACE)
+		target_compile_definitions(libninja PUBLIC FUNCTION_TRACE)
+		target_compile_definitions(ninja PUBLIC FUNCTION_TRACE)
+	endif()
+
+	set(BUILD_TESTING FALSE CACHE BOOL "Build testing")
 endif()
 
 # Adds browse mode into the ninja binary if it's supported by the host platform.
