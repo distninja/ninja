@@ -12,6 +12,9 @@ elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
 elif [[ -f /etc/os-release ]] && grep -qi ubuntu /etc/os-release; then
     echo "Running on Ubuntu"
     cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -B release-build
+elif [[ -f /etc/os-release ]] && grep -qi rocky /etc/os-release; then
+    echo "Running on Rocky"
+    cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -B release-build
 else
     echo "Unknown OS"
 fi
