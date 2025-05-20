@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           mkdir artifact
-          7z a artifact/ninja-win${{ matrix.suffix }}.zip ./release-build/ninja.exe
+          7z a artifact/ninja-win${{ matrix.suffix }}.zip ./release-build/Release/ninja.exe
       - name: 'Upload asset'
         if: github.event.action == 'published'
         uses: actions/upload-release-asset@v1
