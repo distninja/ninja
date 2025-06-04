@@ -235,9 +235,12 @@ parser.add_option('--force-pselect', action='store_true',
                        'but some platforms may need to use pselect instead',)
 parser.add_option('--android-soong', action='store_true',
                   help='enable android soong',
-                  default=True)
+                  default=False)
 parser.add_option('--function-trace', action='store_true',
                   help='enable function trace',
+                  default=False)
+parser.add_option('--lmdb-store', action='store_true',
+                  help='enable lmdb store',
                   default=False)
 (options, args) = parser.parse_args()
 if args:
@@ -429,6 +432,9 @@ if options.android_soong:
 
 if options.function_trace:
     cflags.append('-DFUNCTION_TRACE')
+
+if options.lmdb_store:
+    cflags.append('-DLMDB_STORE')
 
 def shell_escape(str: str) -> str:
     """Escape str such that it's interpreted as a single argument by

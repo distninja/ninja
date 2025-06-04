@@ -150,6 +150,7 @@ add_library(libninja OBJECT
 	src/real_command_runner.cc
 	src/state.cc
 	src/status_printer.cc
+	src/store.cc
 	src/string_piece_util.cc
 	src/tracer.cc
 	src/util.cc
@@ -222,7 +223,7 @@ if(NINJA_BUILD_BINARY)
 		set_target_properties(ninja    PROPERTIES CXX_CLANG_TIDY "clang-tidy;--use-color")
 	endif()
 
-	set(ANDROID_SOONG TRUE CACHE BOOL "Android soong")
+	set(ANDROID_SOONG FALSE CACHE BOOL "Android soong")
 	if(ANDROID_SOONG)
 		target_compile_definitions(libninja PUBLIC ANDROID_SOONG)
 		target_compile_definitions(ninja PUBLIC ANDROID_SOONG)
@@ -232,6 +233,58 @@ if(NINJA_BUILD_BINARY)
 	if(FUNCTION_TRACE)
 		target_compile_definitions(libninja PUBLIC FUNCTION_TRACE)
 		target_compile_definitions(ninja PUBLIC FUNCTION_TRACE)
+	endif()
+
+	set(LMDB_STORE FALSE CACHE BOOL "LMDB store")
+	if(LMDB_STORE)
+		# Set build variables
+		set(GO_BUILD_MODE "c-archive")
+		set(GO_LIBRARY_EXT ".a")
+		set(GO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
+		if(WIN32)
+			set(GO_THREAD_LIB "")
+		else()
+			set(GO_THREAD_LIB "pthread")
+		endif()
+		# Build graph store
+		set(GRAPH_GO_HEADER ${GO_OUTPUT_DIR}/graph.h)
+		set(GRAPH_GO_LIBRARY ${GO_OUTPUT_DIR}/graph${GO_LIBRARY_EXT})
+		set(GRAPH_GO_SOURCE ${PROJECT_SOURCE_DIR}/../graph/main.go)
+		add_custom_command(
+			OUTPUT ${GRAPH_GO_LIBRARY} ${GRAPH_GO_HEADER}
+			COMMAND ${CMAKE_COMMAND} -E env
+				CGO_ENABLED=1
+				go build -ldflags "-s -w" -buildmode=${GO_BUILD_MODE} -o ${GRAPH_GO_LIBRARY} ${PROJECT_SOURCE_DIR}/../graph/main.go
+			DEPENDS ${PROJECT_SOURCE_DIR}/../graph/graph/graph.go
+			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR/../graph}
+		)
+		add_custom_target(graph_go_lib ALL DEPENDS ${GRAPH_GO_LIBRARY} ${GRAPH_GO_HEADER})
+		add_dependencies(libninja graph_go_lib)
+		add_dependencies(ninja graph_go_lib)
+		target_include_directories(libninja PRIVATE ${GRAPH_GO_HEADER})
+		target_include_directories(ninja PRIVATE ${GRAPH_GO_HEADER})
+		target_link_libraries(libninja ${GRAPH_GO_LIBRARY} ${GO_THREAD_LIB})
+		# Build vector store
+		set(VECTOR_GO_HEADER ${GO_OUTPUT_DIR}/vector.h)
+		set(VECTOR_GO_LIBRARY ${GO_OUTPUT_DIR}/vector${GO_LIBRARY_EXT})
+		set(VECTOR_GO_SOURCE ${PROJECT_SOURCE_DIR}/../vector/main.go)
+		add_custom_command(
+			OUTPUT ${VECTOR_GO_LIBRARY} ${VECTOR_GO_HEADER}
+			COMMAND ${CMAKE_COMMAND} -E env
+				CGO_ENABLED=1
+				go build -ldflags "-s -w" -buildmode=${GO_BUILD_MODE} -o ${VECTOR_GO_LIBRARY} ${PROJECT_SOURCE_DIR}/../vector/main.go
+			DEPENDS ${PROJECT_SOURCE_DIR}/../vector/vector/vector.go
+			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR/../vector}
+		)
+		add_custom_target(vector_go_lib ALL DEPENDS ${VECTOR_GO_LIBRARY} ${VECTOR_GO_HEADER})
+		add_dependencies(libninja vector_go_lib)
+		add_dependencies(ninja vector_go_lib)
+		target_include_directories(libninja PRIVATE ${VECTOR_GO_HEADER})
+		target_include_directories(ninja PRIVATE ${VECTOR_GO_HEADER})
+		target_link_libraries(libninja ${VECTOR_GO_LIBRARY} ${GO_THREAD_LIB})
+		# Build lmdb store
+		target_compile_definitions(libninja PUBLIC LMDB_STORE)
+		target_compile_definitions(ninja PUBLIC LMDB_STORE)
 	endif()
 
 	set(BUILD_TESTING FALSE CACHE BOOL "Build testing")
