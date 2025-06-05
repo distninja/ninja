@@ -240,43 +240,44 @@ if(NINJA_BUILD_BINARY)
 		# Set build variables
 		set(GO_BUILD_MODE "c-archive")
 		set(GO_LIBRARY_EXT ".a")
-		set(GO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
 		if(WIN32)
 			set(GO_THREAD_LIB "")
 		else()
 			set(GO_THREAD_LIB "pthread")
 		endif()
 		# Build graph store
-		set(GRAPH_GO_HEADER ${GO_OUTPUT_DIR}/graph.h)
-		set(GRAPH_GO_LIBRARY ${GO_OUTPUT_DIR}/graph${GO_LIBRARY_EXT})
 		set(GRAPH_GO_SOURCE ${PROJECT_SOURCE_DIR}/../graph/main.go)
+		set(GRAPH_GO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/graph)
+		set(GRAPH_GO_HEADER ${GRAPH_GO_OUTPUT_DIR}/graph.h)
+		set(GRAPH_GO_LIBRARY ${GRAPH_GO_OUTPUT_DIR}/graph${GO_LIBRARY_EXT})
 		add_custom_command(
 			OUTPUT ${GRAPH_GO_LIBRARY} ${GRAPH_GO_HEADER}
-			COMMAND ${CMAKE_COMMAND} -E env
-				CGO_ENABLED=1
-				go build -ldflags "-s -w" -buildmode=${GO_BUILD_MODE} -o ${GRAPH_GO_LIBRARY} ${PROJECT_SOURCE_DIR}/../graph/main.go
+			COMMAND ${CMAKE_COMMAND} -E make_directory ${GRAPH_GO_OUTPUT_DIR}
+			COMMAND	go build -ldflags "-s -w" -buildmode=${GO_BUILD_MODE} -o ${GRAPH_GO_LIBRARY} ${PROJECT_SOURCE_DIR}/../graph/main.go
 			DEPENDS ${PROJECT_SOURCE_DIR}/../graph/graph/graph.go
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR/../graph}
+			COMMENT "Building Go static library for graph store"
 		)
-		add_custom_target(graph_go_lib ALL DEPENDS ${GRAPH_GO_LIBRARY} ${GRAPH_GO_HEADER})
+		add_custom_target(graph_go_lib DEPENDS ${GRAPH_GO_LIBRARY})
 		add_dependencies(libninja graph_go_lib)
 		add_dependencies(ninja graph_go_lib)
 		target_include_directories(libninja PRIVATE ${GRAPH_GO_HEADER})
 		target_include_directories(ninja PRIVATE ${GRAPH_GO_HEADER})
 		target_link_libraries(libninja ${GRAPH_GO_LIBRARY} ${GO_THREAD_LIB})
 		# Build vector store
-		set(VECTOR_GO_HEADER ${GO_OUTPUT_DIR}/vector.h)
-		set(VECTOR_GO_LIBRARY ${GO_OUTPUT_DIR}/vector${GO_LIBRARY_EXT})
+		set(VECTOR_GO_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/vector)
+		set(VECTOR_GO_HEADER ${VECTOR_GO_OUTPUT_DIR}/vector.h)
+		set(VECTOR_GO_LIBRARY ${VECTOR_GO_OUTPUT_DIR}/vector${GO_LIBRARY_EXT})
 		set(VECTOR_GO_SOURCE ${PROJECT_SOURCE_DIR}/../vector/main.go)
 		add_custom_command(
 			OUTPUT ${VECTOR_GO_LIBRARY} ${VECTOR_GO_HEADER}
-			COMMAND ${CMAKE_COMMAND} -E env
-				CGO_ENABLED=1
-				go build -ldflags "-s -w" -buildmode=${GO_BUILD_MODE} -o ${VECTOR_GO_LIBRARY} ${PROJECT_SOURCE_DIR}/../vector/main.go
+			COMMAND ${CMAKE_COMMAND} -E make_directory ${GRAPH_GO_OUTPUT_DIR}
+			COMMAND	go build -ldflags "-s -w" -buildmode=${GO_BUILD_MODE} -o ${VECTOR_GO_LIBRARY} ${PROJECT_SOURCE_DIR}/../vector/main.go
 			DEPENDS ${PROJECT_SOURCE_DIR}/../vector/vector/vector.go
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR/../vector}
+			COMMENT "Building Go static library for vector store"
 		)
-		add_custom_target(vector_go_lib ALL DEPENDS ${VECTOR_GO_LIBRARY} ${VECTOR_GO_HEADER})
+		add_custom_target(vector_go_lib DEPENDS ${VECTOR_GO_LIBRARY})
 		add_dependencies(libninja vector_go_lib)
 		add_dependencies(ninja vector_go_lib)
 		target_include_directories(libninja PRIVATE ${VECTOR_GO_HEADER})

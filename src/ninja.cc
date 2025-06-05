@@ -249,7 +249,13 @@ void Usage(const BuildConfig& config) {
 "  -d MODE  enable debugging (use '-d list' to list modes)\n"
 "  -t TOOL  run a subtool (use '-t list' to list subtools)\n"
 "    terminates toplevel options; further flags are passed to the tool\n"
+#ifdef LMDB_STORE
+"  -w FLAG  adjust warnings (use '-w list' to list warnings)\n"
+"\n"
+"  -s PORT  run serve mode [default=9090]\n",
+#else
 "  -w FLAG  adjust warnings (use '-w list' to list warnings)\n",
+#endif /* LMDB_STORE */
           kNinjaVersion, config.parallelism);
 }
 
@@ -1786,6 +1792,16 @@ int ReadFlags(int* argc, char*** argv,
       case 'C':
         options->working_dir = optarg;
         break;
+#ifdef LMDB_STORE
+      case 's': {
+        char* end;
+        int value = strtol(optarg, &end, 10);
+        if (*end != 0 || value < 0 || value > 65535)
+          Fatal("invalid -s parameter");
+        config->serve_port = value;
+        break;
+      }
+#endif /* LMDB_STORE */
       case OPT_VERSION:
         printf("%s\n", kNinjaVersion);
         return 0;

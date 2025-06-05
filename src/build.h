@@ -191,6 +191,10 @@ struct BuildConfig {
   /// means that we do not have any limit.
   double max_load_average = -0.0f;
   DepfileParserOptions depfile_parser_options;
+
+#ifdef LMDB_STORE
+  int serve_port = 9090;
+#endif /* LMDB_STORE */
 };
 
 /// Builder wraps the build process: starting commands, updating status.
