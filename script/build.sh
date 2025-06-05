@@ -4,20 +4,12 @@
 # Enable function trace: FUNCTION_TRACE (--function-trace)
 # Enable lmdb store: LMDB_STORE (--lmdb-store)
 
-if grep -qi microsoft /proc/version; then
-    echo "Running on Windows Subsystem for Linux"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "Running on Linux"
     cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -DLMDB_STORE=ON -B release-build
-elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    echo "Running on Windows"
-    cmake -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -DLMDB_STORE=ON -B release-build
-elif [[ -f /etc/os-release ]] && grep -qi ubuntu /etc/os-release; then
-    echo "Running on Ubuntu"
-    cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -DLMDB_STORE=ON -B release-build
-elif [[ -f /etc/os-release ]] && grep -qi rocky /etc/os-release; then
-    echo "Running on Rocky"
-    cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -DLMDB_STORE=ON -B release-build
-else
-    echo "Unknown OS"
+    cmake --build release-build --parallel --config Release
+elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+    echo "Running on Windows (MinGW/MSYS/Cygwin)"
+    CC=gcc CXX=g++ cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DANDROID_SOONG=ON -DLMDB_STORE=ON -B release-build
+    pushd release-build; mingw32-make -j4; popd
 fi
-
-cmake --build release-build --parallel --config Release
